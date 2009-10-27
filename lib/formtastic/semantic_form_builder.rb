@@ -26,8 +26,6 @@ module Formtastic
         
     attr_accessor :template
     
-    include Formtastic::Inputs
-  
     # Returns a suitable form input for the given +method+, using the database column information
     # and other factors (like the method name) to figure out what you probably want.
     #
@@ -98,114 +96,8 @@ module Formtastic
   
       return template.content_tag(:li, list_item_content, wrapper_html)
     end
-  
-    # Creates a fieldset and ol tag wrapping for form buttons / actions as list items.
-    # See inputs documentation for a full example.  The fieldset's default class attriute
-    # is set to "buttons".
-    #
-    # See inputs for html attributes and special options.
-    def buttons(*args, &block)
-      html_options = args.extract_options!
-      html_options[:class] ||= "buttons"
-  
-      if block_given?
-        field_set_and_list_wrapping(html_options, &block)
-      else
-        args = [:commit] if args.empty?
-        contents = args.map { |button_name| send(:"#{button_name}_button") }
-        field_set_and_list_wrapping(html_options, contents)
-      end
-    end
-    alias :button_field_set :buttons
-  
-    # Creates a submit input tag with the value "Save [model name]" (for existing records) or
-    # "Create [model name]" (for new records) by default:
-    #
-    #   <%= form.commit_button %> => <input name="commit" type="submit" value="Save Post" />
-    #
-    # The value of the button text can be overridden:
-    #
-    #  <%= form.commit_button "Go" %> => <input name="commit" type="submit" value="Go" class="{create|update|submit}" />
-    #  <%= form.commit_button :label => "Go" %> => <input name="commit" type="submit" value="Go" class="{create|update|submit}" />
-    #
-    # And you can pass html atributes down to the input, with or without the button text:
-    #
-    #  <%= form.commit_button "Go" %> => <input name="commit" type="submit" value="Go" class="{create|update|submit}" />
-    #  <%= form.commit_button :class => "pretty" %> => <input name="commit" type="submit" value="Save Post" class="pretty {create|update|submit}" />
-    #
-    def commit_button(*args)
-      options = args.extract_options!
-      text = options.delete(:label) || args.shift
-  
-      if @object
-        key = @object.new_record? ? :create : :update
-        object_name = @object.class.human_name
-  
-        if key == :update
-          # Note: Fallback on :save-key (deprecated), :update makes more sense in the REST-world.
-          fallback_text = ::I18n.t(:save, :model => object_name, :default => "Save {{model}}", :scope => [:formtastic])
-          ::ActiveSupport::Deprecation.warn "Formtastic I18n: Key 'formtastic.save' is now deprecated in favor 'formtastic.update'."
-        end
-      else
-        key = :submit
-        object_name = @object_name.to_s.send(@@label_str_method)
-      end
-      fallback_text ||= "#{key.to_s.humanize} {{model}}"
-  
-      text = (self.localized_string(key, text, :action, :model => object_name) ||
-              ::I18n.t(key, :model => object_name, :default => fallback_text, :scope => [:formtastic])) unless text.is_a?(::String)
-  
-      button_html = options.delete(:button_html) || {}
-      button_html.merge!(:class => [button_html[:class], key].compact.join(' '))
-      element_class = ['commit', options.delete(:class)].compact.join(' ') # TODO: Add class reflecting on form action.
-      accesskey = (options.delete(:accesskey) || @@default_commit_button_accesskey) unless button_html.has_key?(:accesskey)
-      button_html = button_html.merge(:accesskey => accesskey) if accesskey  
-      template.content_tag(:li, self.submit(text, button_html), :class => element_class)
-    end
     
-    # Generates the label for the input. It also accepts the same arguments as
-    # Rails label method. It has three options that are not supported by Rails
-    # label method:
-    #
-    # * :required - Appends an abbr tag if :required is true
-    # * :label - An alternative form to give the label content. Whenever label
-    #            is false, a blank string is returned.
-    # * :as_span - When true returns a span tag with class label instead of a label element
-    # * :input_name - Gives the input to match for. This is needed when you want to
-    #                 to call f.label :authors but it should match :author_ids.
-    #
-    # == Examples
-    #
-    #  f.label :title # like in rails, except that it searches the label on I18n API too
-    #
-    #  f.label :title, "Your post title"
-    #  f.label :title, :label => "Your post title" # Added for formtastic API
-    #
-    #  f.label :title, :required => true # Returns <label>Title<abbr title="required">*</abbr></label>
-    #
-    def label(method, options_or_text=nil, options=nil)
-      if options_or_text.is_a?(Hash)
-        return "" if options_or_text[:label] == false
-        options = options_or_text
-        text = options.delete(:label)
-      else
-        text = options_or_text
-        options ||= {}
-      end
-      text = localized_string(method, text, :label) || humanized_attribute_name(method)
-      text += required_or_optional_string(options.delete(:required))
-      
-      # special case for boolean (checkbox) labels, which have a nested input
-      text = (options.delete(:label_prefix_for_nested_input) || "") + text
-      
-      input_name = options.delete(:input_name) || method
-      if options.delete(:as_span)
-        options[:class] ||= 'label'
-        template.content_tag(:span, text, options)
-      else
-        super(input_name, text, options)
-      end
-    end
+    
   
     # Generates error messages for the given method. Errors can be shown as list
     # or as sentence. If :none is set, no error is shown.
@@ -228,11 +120,6 @@ module Formtastic
   
     protected
   
-    # Prepare options to be sent to label
-    #
-    def options_for_label(options)
-      options.slice(:label, :required).merge!(options.fetch(:label_html, {}))
-    end
   
     # Remove any Formtastic-specific options before passing the down options.
     #
@@ -791,26 +678,6 @@ module Formtastic
       template.content_tag(:ul, list_elements.join("\n"), :class => 'errors')
     end
   
-    # Generates the required or optional string. If the value set is a proc,
-    # it evaluates the proc first.
-    #
-    def required_or_optional_string(required) #:nodoc:
-      string_or_proc = case required
-        when true
-          @@required_string
-        when false
-          @@optional_string
-        else
-          required
-      end
-  
-      if string_or_proc.is_a?(Proc)
-        string_or_proc.call
-      else
-        string_or_proc.to_s
-      end
-    end
-  
     # Also generates a fieldset and an ordered list but with label based in
     # method. This methods is currently used by radio and datetime inputs.
     #
@@ -1064,6 +931,14 @@ module Formtastic
         options
       end
   
+    include Formtastic::Label
+    include Formtastic::Inputs
+    include Formtastic::Buttons
+  
   end
+  
+  
+
+  
   
 end 
