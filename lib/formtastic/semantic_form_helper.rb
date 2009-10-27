@@ -24,8 +24,8 @@ module Formtastic #:nodoc:
   #   <% end %>
   #
   # The above examples use a resource-oriented style of form_for() helper where only the @post
-  # object is given as an argument, but the generic style is also supported if you really want it,
-  # as is forms with inline objects (Post.new) rather than objects with instance variables (@post):
+  # object is given as an argument, but the generic style is also supported, as are forms with 
+  # inline objects (Post.new) rather than objects with instance variables (@post):
   #
   #   <% semantic_form_for :post, @post, :url => posts_path do |f| %>
   #     ...
@@ -34,14 +34,6 @@ module Formtastic #:nodoc:
   #   <% semantic_form_for :post, Post.new, :url => posts_path do |f| %>
   #     ...
   #   <% end %>
-  #
-  # The shorter, resource-oriented style is most definitely preferred, and has recieved the most
-  # testing to date.
-  #
-  # Please note: Although it's possible to call Rails' built-in form_for() helper without an
-  # object, all semantic forms *must* have an object (either Post.new or @post), as Formtastic
-  # has too many dependencies on an ActiveRecord object being present.
-  #
   module SemanticFormHelper
     @@builder = Formtastic::SemanticFormBuilder
     mattr_accessor :builder
@@ -51,7 +43,6 @@ module Formtastic #:nodoc:
     # Override the default ActiveRecordHelper behaviour of wrapping the input.
     # This gets taken care of semantically by adding an error class to the LI tag
     # containing the input.
-    #
     FIELD_ERROR_PROC = proc do |html_tag, instance_tag|
       html_tag
     end
