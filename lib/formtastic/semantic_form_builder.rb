@@ -96,28 +96,7 @@ module Formtastic
   
       return template.content_tag(:li, list_item_content, wrapper_html)
     end
-    
-    
-  
-    # Generates error messages for the given method. Errors can be shown as list
-    # or as sentence. If :none is set, no error is shown.
-    #
-    # This method is also aliased as errors_on, so you can call on your custom
-    # inputs as well:
-    #
-    #   semantic_form_for :post do |f|
-    #     f.text_field(:body)
-    #     f.errors_on(:body)
-    #   end
-    #
-    def inline_errors_for(method, options=nil) #:nodoc:
-      return nil unless @object && @object.respond_to?(:errors) && [:sentence, :list].include?(@@inline_errors)
-  
-      errors = @object.errors[method.to_sym]
-      send("error_#{@@inline_errors}", Array(errors)) unless errors.blank?
-    end
-    alias :errors_on :inline_errors_for
-  
+      
     protected
   
   
@@ -647,35 +626,6 @@ module Formtastic
       options[:label_prefix_for_nested_input] = input
       
       self.label(method, options)
-    end
-  
-    # Generates an input for the given method using the type supplied with :as.
-    def inline_input_for(method, options)
-      send("#{options.delete(:as)}_input", method, options)
-    end
-  
-    # Generates hints for the given method using the text supplied in :hint.
-    #
-    def inline_hints_for(method, options) #:nodoc:
-      options[:hint] = localized_string(method, options[:hint], :hint)
-      return if options[:hint].blank?
-      template.content_tag(:p, options[:hint], :class => 'inline-hints')
-    end
-  
-    # Creates an error sentence by calling to_sentence on the errors array.
-    #
-    def error_sentence(errors) #:nodoc:
-      template.content_tag(:p, errors.to_sentence.untaint, :class => 'inline-errors')
-    end
-  
-    # Creates an error li list.
-    #
-    def error_list(errors) #:nodoc:
-      list_elements = []
-      errors.each do |error|
-        list_elements <<  template.content_tag(:li, error.untaint)
-      end
-      template.content_tag(:ul, list_elements.join("\n"), :class => 'errors')
     end
   
     # Also generates a fieldset and an ordered list but with label based in
