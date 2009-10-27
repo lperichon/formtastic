@@ -24,9 +24,10 @@ Spec::Runner.configure do |config|
   config.include(RspecHpricotMatchers)
 end
 
-$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
+$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib', 'formtastic'))
 
-require 'formtastic'
+require 'semantic_form_builder'
+require 'semantic_form_helper'
 
 module FormtasticSpecHelper
   include ActionView::Helpers::FormHelper
