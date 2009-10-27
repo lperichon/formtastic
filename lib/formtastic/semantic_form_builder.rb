@@ -25,6 +25,8 @@ module Formtastic
                     '{{attribute}}']
         
     attr_accessor :template
+    
+    include Formtastic::Inputs
   
     # Returns a suitable form input for the given +method+, using the database column information
     # and other factors (like the method name) to figure out what you probably want.
@@ -97,155 +99,6 @@ module Formtastic
       return template.content_tag(:li, list_item_content, wrapper_html)
     end
   
-    # Creates an input fieldset and ol tag wrapping for use around a set of inputs.  It can be
-    # called either with a block (in which you can do the usual Rails form stuff, HTML, ERB, etc),
-    # or with a list of fields.  These two examples are functionally equivalent:
-    #
-    #   # With a block:
-    #   <% semantic_form_for @post do |form| %>
-    #     <% form.inputs do %>
-    #       <%= form.input :title %>
-    #       <%= form.input :body %>
-    #     <% end %>
-    #   <% end %>
-    #
-    #   # With a list of fields:
-    #   <% semantic_form_for @post do |form| %>
-    #     <%= form.inputs :title, :body %>
-    #   <% end %>
-    #
-    #   # Output:
-    #   <form ...>
-    #     <fieldset class="inputs">
-    #       <ol>
-    #         <li class="string">...</li>
-    #         <li class="text">...</li>
-    #       </ol>
-    #     </fieldset>
-    #   </form>
-    #
-    # === Quick Forms
-    #
-    # When called without a block or a field list, an input is rendered for each column in the
-    # model's database table, just like Rails' scaffolding.  You'll obviously want more control
-    # than this in a production application, but it's a great way to get started, then come back
-    # later to customise the form with a field list or a block of inputs.  Example:
-    #
-    #   <% semantic_form_for @post do |form| %>
-    #     <%= form.inputs %>
-    #   <% end %>
-    #
-    # === Options
-    #
-    # All options (with the exception of :name) are passed down to the fieldset as HTML
-    # attributes (id, class, style, etc).  If provided, the :name option is passed into a
-    # legend tag inside the fieldset (otherwise a legend is not generated).
-    #
-    #   # With a block:
-    #   <% semantic_form_for @post do |form| %>
-    #     <% form.inputs :name => "Create a new post", :style => "border:1px;" do %>
-    #       ...
-    #     <% end %>
-    #   <% end %>
-    #
-    #   # With a list (the options must come after the field list):
-    #   <% semantic_form_for @post do |form| %>
-    #     <%= form.inputs :title, :body, :name => "Create a new post", :style => "border:1px;" %>
-    #   <% end %>
-    #
-    # === It's basically a fieldset!
-    #
-    # Instead of hard-coding fieldsets & legends into your form to logically group related fields,
-    # use inputs:
-    #
-    #   <% semantic_form_for @post do |f| %>
-    #     <% f.inputs do %>
-    #       <%= f.input :title %>
-    #       <%= f.input :body %>
-    #     <% end %>
-    #     <% f.inputs :name => "Advanced", :id => "advanced" do %>
-    #       <%= f.input :created_at %>
-    #       <%= f.input :user_id, :label => "Author" %>
-    #     <% end %>
-    #   <% end %>
-    #
-    #   # Output:
-    #   <form ...>
-    #     <fieldset class="inputs">
-    #       <ol>
-    #         <li class="string">...</li>
-    #         <li class="text">...</li>
-    #       </ol>
-    #     </fieldset>
-    #     <fieldset class="inputs" id="advanced">
-    #       <legend><span>Advanced</span></legend>
-    #       <ol>
-    #         <li class="datetime">...</li>
-    #         <li class="select">...</li>
-    #       </ol>
-    #     </fieldset>
-    #   </form>
-    #
-    # === Nested attributes
-    #
-    # As in Rails, you can use semantic_fields_for to nest attributes:
-    #
-    #   <% semantic_form_for @post do |form| %>
-    #     <%= form.inputs :title, :body %>
-    #
-    #     <% form.semantic_fields_for :author, @bob do |author_form| %>
-    #       <% author_form.inputs do %>
-    #         <%= author_form.input :first_name, :required => false %>
-    #         <%= author_form.input :last_name %>
-    #       <% end %>
-    #     <% end %>
-    #   <% end %>
-    #
-    # But this does not look formtastic! This is equivalent:
-    #
-    #   <% semantic_form_for @post do |form| %>
-    #     <%= form.inputs :title, :body %>
-    #     <% form.inputs :for => [ :author, @bob ] do |author_form| %>
-    #       <%= author_form.input :first_name, :required => false %>
-    #       <%= author_form.input :last_name %>
-    #     <% end %>
-    #   <% end %>
-    #
-    # And if you don't need to give options to your input call, you could do it
-    # in just one line:
-    #
-    #   <% semantic_form_for @post do |form| %>
-    #     <%= form.inputs :title, :body %>
-    #     <%= form.inputs :first_name, :last_name, :for => @bob %>
-    #   <% end %>
-    #
-    # Just remember that calling inputs generates a new fieldset to wrap your
-    # inputs. If you have two separate models, but, semantically, on the page
-    # they are part of the same fieldset, you should use semantic_fields_for
-    # instead (just as you would do with Rails' form builder).
-    #
-    def inputs(*args, &block)
-      html_options = args.extract_options!
-      html_options[:class] ||= "inputs"
-  
-      if html_options[:for]
-        inputs_for_nested_attributes(args, html_options, &block)
-      elsif block_given?
-        field_set_and_list_wrapping(html_options, &block)
-      else
-        if @object && args.empty?
-          args  = @object.class.reflections.map { |n,_| n if _.macro == :belongs_to }
-          args += @object.class.content_columns.map(&:name)
-          args -= %w[created_at updated_at created_on updated_on lock_version version]
-          args.compact!
-        end
-        contents = args.map { |method| input(method.to_sym) }
-  
-        field_set_and_list_wrapping(html_options, contents)
-      end
-    end
-    alias :input_field_set :inputs
-  
     # Creates a fieldset and ol tag wrapping for form buttons / actions as list items.
     # See inputs documentation for a full example.  The fieldset's default class attriute
     # is set to "buttons".
@@ -309,33 +162,7 @@ module Formtastic
       button_html = button_html.merge(:accesskey => accesskey) if accesskey  
       template.content_tag(:li, self.submit(text, button_html), :class => element_class)
     end
-  
-    # A thin wrapper around #fields_for to set :builder => Formtastic::SemanticFormBuilder
-    # for nesting forms:
-    #
-    #   # Example:
-    #   <% semantic_form_for @post do |post| %>
-    #     <% post.semantic_fields_for :author do |author| %>
-    #       <% author.inputs :name %>
-    #     <% end %>
-    #   <% end %>
-    #
-    #   # Output:
-    #   <form ...>
-    #     <fieldset class="inputs">
-    #       <ol>
-    #         <li class="string"><input type='text' name='post[author][name]' id='post_author_name' /></li>
-    #       </ol>
-    #     </fieldset>
-    #   </form>
-    #
-    def semantic_fields_for(record_or_name_or_array, *args, &block)
-      opts = args.extract_options!
-      opts.merge!(:builder => Formtastic::SemanticFormHelper.builder)
-      args.push(opts)
-      fields_for(record_or_name_or_array, *args, &block)
-    end
-  
+    
     # Generates the label for the input. It also accepts the same arguments as
     # Rails label method. It has three options that are not supported by Rails
     # label method:
@@ -405,28 +232,6 @@ module Formtastic
     #
     def options_for_label(options)
       options.slice(:label, :required).merge!(options.fetch(:label_html, {}))
-    end
-  
-    # Deals with :for option when it's supplied to inputs methods. Additional
-    # options to be passed down to :for should be supplied using :for_options
-    # key.
-    #
-    # It should raise an error if a block with arity zero is given.
-    #
-    def inputs_for_nested_attributes(args, options, &block)
-      args << options.merge!(:parent => { :builder => self, :for => options[:for] })
-  
-      fields_for_block = if block_given?
-        raise ArgumentError, 'You gave :for option with a block to inputs method, ' <<
-                             'but the block does not accept any argument.' if block.arity <= 0
-  
-        proc { |f| f.inputs(*args){ block.call(f) } }
-      else
-        proc { |f| f.inputs(*args) }
-      end
-  
-      fields_for_args = [options.delete(:for), options.delete(:for_options) || {}].flatten
-      semantic_fields_for(*fields_for_args, &fields_for_block)
     end
   
     # Remove any Formtastic-specific options before passing the down options.
@@ -1004,42 +809,6 @@ module Formtastic
       else
         string_or_proc.to_s
       end
-    end
-  
-    # Generates a fieldset and wraps the content in an ordered list. When working
-    # with nested attributes (in Rails 2.3), it allows %i as interpolation option
-    # in :name. So you can do:
-    #
-    #   f.inputs :name => 'Task #%i', :for => :tasks
-    #
-    # And it will generate a fieldset for each task with legend 'Task #1', 'Task #2',
-    # 'Task #3' and so on.
-    #
-    def field_set_and_list_wrapping(html_options, contents='', &block) #:nodoc:
-      html_options[:name] ||= html_options.delete(:title)
-      html_options[:name] = localized_string(html_options[:name], html_options[:name], :title) if html_options[:name].is_a?(Symbol)
-  
-      legend  = html_options.delete(:name).to_s
-      legend %= parent_child_index(html_options[:parent]) if html_options[:parent]
-      legend  = template.content_tag(:legend, template.content_tag(:span, legend)) unless legend.blank?
-  
-      if block_given?
-        contents = if template.respond_to?(:is_haml?) && template.is_haml?
-          template.capture_haml(&block)
-        else
-          template.capture(&block)
-        end
-      end
-  
-      # Ruby 1.9: String#to_s behavior changed, need to make an explicit join.
-      contents = contents.join if contents.respond_to?(:join)
-      fieldset = template.content_tag(:fieldset,
-        legend + template.content_tag(:ol, contents),
-        html_options.except(:builder, :parent)
-      )
-  
-      template.concat(fieldset) if block_given?
-      fieldset
     end
   
     # Also generates a fieldset and an ordered list but with label based in
