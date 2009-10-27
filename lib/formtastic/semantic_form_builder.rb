@@ -101,8 +101,7 @@ module Formtastic
   
   
     # Remove any Formtastic-specific options before passing the down options.
-    #
-    def set_options(options)
+    def remove_formtastic_options(options)
       options.except(:value_method, :label_method, :collection, :required, :label,
                      :as, :hint, :input_html, :label_html, :value_as_class)
     end
@@ -187,7 +186,7 @@ module Formtastic
     # Additionals options can be given and will be sent straight to hidden input
     # element.
     def hidden_input(method, options)
-      self.hidden_field(method, set_options(options))
+      self.hidden_field(method, remove_formtastic_options(options))
     end
   
     # Outputs a label and a select box containing options from the parent
@@ -292,7 +291,7 @@ module Formtastic
   
       input_name = generate_association_input_name(method)
       self.label(method, options_for_label(options).merge(:input_name => input_name)) +
-      self.select(input_name, collection, set_options(options), html_options)
+      self.select(input_name, collection, remove_formtastic_options(options), html_options)
     end
     alias :boolean_select_input :select_input
   
@@ -307,7 +306,7 @@ module Formtastic
       html_options = options.delete(:input_html) || {}
   
       self.label(method, options_for_label(options)) +
-      self.time_zone_select(method, options.delete(:priority_zones), set_options(options), html_options)
+      self.time_zone_select(method, options.delete(:priority_zones), remove_formtastic_options(options), html_options)
     end
   
     # Outputs a fieldset containing a legend for the label text, and an ordered list (ol) of list
@@ -368,7 +367,7 @@ module Formtastic
     # applying specific CSS or Javascript to a particular radio button).
     def radio_input(method, options)
       collection   = find_collection_for_column(method, options)
-      html_options = set_options(options).merge(options.delete(:input_html) || {})
+      html_options = remove_formtastic_options(options).merge(options.delete(:input_html) || {})
   
       input_name = generate_association_input_name(method)
       value_as_class = options.delete(:value_as_class)
@@ -480,7 +479,7 @@ module Formtastic
           hidden_value = datetime.respond_to?(input) ? datetime.send(input) : datetime
           hidden_fields_capture << template.hidden_field_tag("#{@object_name}[#{field_name}]", (hidden_value || 1), :id => html_id)
         else
-          opts = set_options(options).merge(:prefix => @object_name, :field_name => field_name)
+          opts = remove_formtastic_options(options).merge(:prefix => @object_name, :field_name => field_name)
           item_label_text = I18n.t(input.to_s, :default => input.to_s.humanize, :scope => [:datetime, :prompts])
   
           list_items_capture << template.content_tag(:li,
@@ -607,7 +606,7 @@ module Formtastic
       priority_countries = options.delete(:priority_countries) || @@priority_countries
   
       self.label(method, options_for_label(options)) +
-      self.country_select(method, priority_countries, set_options(options), html_options)
+      self.country_select(method, priority_countries, remove_formtastic_options(options), html_options)
     end
     
   
@@ -618,7 +617,7 @@ module Formtastic
     def boolean_input(method, options)
       html_options = options.delete(:input_html) || {}
   
-      input = self.check_box(method, set_options(options).merge(html_options),
+      input = self.check_box(method, remove_formtastic_options(options).merge(html_options),
                              options.delete(:checked_value) || '1', options.delete(:unchecked_value) || '0')
       options = options_for_label(options)
       
