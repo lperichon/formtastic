@@ -27,6 +27,7 @@ end
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib', 'formtastic'))
 
 require 'inputs'
+require 'input'
 require 'label'
 require 'buttons'
 require 'semantic_form_builder'
