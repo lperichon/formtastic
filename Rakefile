@@ -1,4 +1,5 @@
 # coding: utf-8
+require 'rubygems'
 require 'rake'
 require 'rake/rdoctask'
 
@@ -6,11 +7,11 @@ gem 'rspec-rails', '>= 1.0.0'
 require 'spec/rake/spectask'
 
 begin
-  GEM = "formtastic"
-  AUTHOR = "Justin French"
-  EMAIL = "justin@indent.com.au"
+  GEM = "lperichon-formtastic"
+  AUTHOR = "Justin French / Luis Perichon"
+  EMAIL = "info@luisperichon.com.ar"
   SUMMARY = "A Rails form builder plugin/gem with semantically rich and accessible markup"
-  HOMEPAGE = "http://github.com/justinfrench/formtastic/tree/master"
+  HOMEPAGE = "http://github.com/lperichon/formtastic"
   INSTALL_MESSAGE = %q{
   ========================================================================
 

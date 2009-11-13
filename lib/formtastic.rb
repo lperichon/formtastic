@@ -479,6 +479,9 @@ module Formtastic #:nodoc:
       if_condition = !options[:if].nil?
       condition = if_condition ? options[:if] : options[:unless]
 
+      # ignores any other option (for example :on)
+      return true if condition.blank?
+
       condition = if condition.respond_to?(:call)
                     condition.call(@object)
                   elsif condition.is_a?(::Symbol) && @object.respond_to?(condition)
