@@ -7,7 +7,7 @@ gem 'rspec-rails', '>= 1.0.0'
 require 'spec/rake/spectask'
 
 begin
-  GEM = "lperichon-formtastic"
+  GEM = "formtastic"
   AUTHOR = "Justin French / Luis Perichon"
   EMAIL = "info@luisperichon.com.ar"
   SUMMARY = "A Rails form builder plugin/gem with semantically rich and accessible markup"

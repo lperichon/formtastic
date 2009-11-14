@@ -8,11 +8,11 @@ Gem::Specification.new do |s|
   s.version = "0.9.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["Justin French"]
+  s.authors = ["Justin French / Luis Perichon"]
   s.autorequire = %q{formtastic}
-  s.date = %q{2009-11-13}
+  s.date = %q{2009-11-14}
   s.description = %q{A Rails form builder plugin/gem with semantically rich and accessible markup}
-  s.email = %q{justin@indent.com.au}
+  s.email = %q{info@luisperichon.com.ar}
   s.extra_rdoc_files = [
     "README.textile"
   ]
@@ -46,7 +46,7 @@ Gem::Specification.new do |s|
      "spec/spec.opts",
      "spec/test_helper.rb"
   ]
-  s.homepage = %q{http://github.com/justinfrench/formtastic/tree/master}
+  s.homepage = %q{http://github.com/lperichon/formtastic}
   s.post_install_message = %q{
   ========================================================================
 
